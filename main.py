@@ -24,6 +24,7 @@ class principal:
     # test Data
     testData = pd.read_csv("test.csv")
 
+
     stopwords = ['de',
                  'a',
                  'o',
@@ -245,6 +246,8 @@ class principal:
                                  stop_words=stopwords)
     train_vectors = vectorizer.fit_transform(trainData['text'])
     test_vectors = vectorizer.transform(testData['text'])
+
+    print(train_vectors)
 
     nexec = 29
     kernels = []
