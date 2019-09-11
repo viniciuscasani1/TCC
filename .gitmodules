@@ -1,3 +1,6 @@
 [submodule "svm-artigo"]
 	path = svm-artigo
 	url = https://github.com/viniciuscasani1/TCC.git
+[submodule "collect-data-api"]
+	path = collect-data-api
+	url = https://github.com/viniciuscasani1/TCC.git
