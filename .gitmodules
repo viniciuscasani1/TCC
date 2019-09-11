@@ -1,0 +1,3 @@
+[submodule "artigo-svm"]
+	path = artigo-svm
+	url = https://github.com/viniciuscasani1/TCC.git
