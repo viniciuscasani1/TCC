@@ -1,6 +1,0 @@
-[submodule "artigo-svm"]
-	path = artigo-svm
-	url = https://github.com/viniciuscasani1/TCC.git
-[submodule "collect-data"]
-	path = collect-data
-	url = https://github.com/viniciuscasani1/TCC.git
