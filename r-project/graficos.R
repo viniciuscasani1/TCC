@@ -8,5 +8,5 @@ dataset = dataset()
 
 View(dataset)
 
-ggplot(data = data1) + geom_bar(mapping = aes(x = psiquico, fill = psiquico))
+ggplot(data = dataset) + geom_bar(mapping = aes(x = psiquico, fill = psiquico))
 
