@@ -6,7 +6,7 @@ source("request_server.R")
 
 dataset = dataset()
 
-View(dataset)
+View(dataset1)
 
-ggplot(data = dataset) + geom_bar(mapping = aes(x = psiquico, fill = psiquico))
+ggplot(data = dataset1) + geom_bar(mapping = aes(x = validadoEspec, fill = validadoEspec))
 

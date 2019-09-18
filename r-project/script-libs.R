@@ -7,3 +7,7 @@ install.packages(c("rlist", "jsonlite"), dependencies = TRUE)
 #pacote para vetorizar dados
 install.packages("text2vec", dependencies = TRUE)
 install.packages("superml", dependencies = TRUE)
+
+#ML
+install.packages("mlr", dependencies = TRUE)
+
