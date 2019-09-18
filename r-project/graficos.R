@@ -4,7 +4,7 @@ library(ggplot2)
 #carrega arquivos
 source("request_server.R")
 
-dataset = dataset()
+dataset1 = getDataset()
 
 View(dataset1)
 

@@ -21,7 +21,7 @@ getDados <- function(){
 }
 
 
-dataset <- function(){
+getDataset <- function(){
   json <- getDados()
   #converte para dataframe
   json <- lapply(json, function(x) {
