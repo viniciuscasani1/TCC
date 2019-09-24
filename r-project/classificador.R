@@ -11,6 +11,12 @@ source("pre-processing.R")
 #busca dados no servidor
 dados = getDataset()
 
+datateste = read.csv("dataset.csv")
+
+View(datateste)
+
+dados = datateste
+
 #extrai apenas as sentenças para vetorizar
 sentencas = dados[,1]
 
@@ -37,45 +43,31 @@ dsfisiologico = data.frame(fisiologico, vetores)
 #cria um dataset referente ao psiquico e os vetores
 dsPsiquico = data.frame(psiquico, vetores)
 
-
-# criar uma tarefa de classificacao para o dsPsiquico
 task = makeClassifTask(data = dsComportamental, target = "comportamental")
-print(task)
 
-# Iniciar um algoritmo para classificar algorithm
-#algo = makeLearner(cl = "classif.randomForest", predict.type = "prob")
-# algo = makeLearner(cl = "classif.rpart")
-algo = makeLearner(cl = "classif.knn")
-print(algo)
+# Criar uma lista de algoritmos (learners)
+lrns = list(                   # LDA - algoritmo linear
+  makeLearner("classif.svm", id = "svm")# RF  - random Forest 
+)
 
-# Dividir os dados do dataset em treino e teste, e rodar varias permutacoes
-#rdesc = makeResampleDesc(method = "CV", iters = 10, stratify = TRUE)
-#utilizando por conta do tamanho do dataset
-rdesc = makeResampleDesc("Holdout", split = 2/3)
+# Definir o processo de validacao cruzada (10 particoes)
+#rdesc = makeResampleDesc("CV", iters = 10, stratify = TRUE)
+rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 10, folds = 10)
 
-# Medidas de desempenho para avaliar os resultados
-measures = list(acc, bac)
+# Definir medidas de avaliacao
+me = list(acc, bac)
 
-# Rodar o algoritmo na tarefa e coletar os resultados
-result = resample(learner = algo, task = task, resampling = rdesc,
-                  measures = measures, show.info = TRUE)
-result
+# Rodar os algoritmos na tarefa definida
+bmr = benchmark(learners = lrns, tasks = task, resamplings = rdesc, 
+                measures = me, show.info = TRUE)
+print(bmr)
 
-# mostrando o resultado
-print(result$aggr)
+# Plotar os resultados (boxplots)
+plotBMRBoxplots(bmr, measure = bac, style = "violin",
+                order.lrn = getBMRLearnerIds(bmr)) + aes(color = learner.id)
 
-# Checar as predicoes obtidas pelo algoritmo
-result$pred
-pred = getRRPredictions(res = result)
-print(pred)
+plotBMRBoxplots(bmr, measure = bac, style = "box",
+                order.lrn = getBMRLearnerIds(bmr)) +
+  aes(color = learner.id) 
 
-# tabela predicoes
-table(pred$data[,2:3])
-
-# visualizar as predicoes usando um heatmp
-aux = pred$data
-df2 = melt(aux, id.vars =c(1,4,5))
-df2$id = as.factor(df2$id)
-ggplot(data = df2) + geom_tile(aes(x = id, y = variable, fill = value)) + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
-  scale_fill_manual(values = c("blue", "black", "red"))
+# demais plots?
