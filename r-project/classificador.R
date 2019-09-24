@@ -6,12 +6,15 @@ library(reshape2)
 #carrega arquivos
 source("vetorizacao.R")
 source("request_server.R")
+source("pre-processing.R")
 
 #busca dados no servidor
 dados = getDataset()
 
 #extrai apenas as sentenças para vetorizar
 sentencas = dados[,1]
+
+sentencas = preProcess(sentencas, stemDoc = TRUE)
 
 #extrai coluna comportamental
 comportamental = dados[,2]
@@ -36,7 +39,7 @@ dsPsiquico = data.frame(psiquico, vetores)
 
 
 # criar uma tarefa de classificacao para o dsPsiquico
-task = makeClassifTask(data = dsPsiquico, target = "psiquico")
+task = makeClassifTask(data = dsComportamental, target = "comportamental")
 print(task)
 
 # Iniciar um algoritmo para classificar algorithm

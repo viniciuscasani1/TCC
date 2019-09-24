@@ -11,3 +11,6 @@ install.packages("superml", dependencies = TRUE)
 #ML
 install.packages("mlr", dependencies = TRUE)
 
+#pré processamento
+install.packages("Stem", dependencies = TRUE)
+install.packages("wordcloud", dependencies = TRUE)
