@@ -10,6 +10,8 @@ install.packages("superml", dependencies = TRUE)
 
 #ML
 install.packages("mlr", dependencies = TRUE)
+install.packages("qdapRegex", dependencies = TRUE)
+
 
 #pré processamento
 install.packages("Stem", dependencies = TRUE)

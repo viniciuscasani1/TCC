@@ -43,31 +43,36 @@ dsfisiologico = data.frame(fisiologico, vetores)
 #cria um dataset referente ao psiquico e os vetores
 dsPsiquico = data.frame(psiquico, vetores)
 
-task = makeClassifTask(data = dsComportamental, target = "comportamental")
+tasks = list(
+  makeClassifTask(data = dsComportamental, target = "comportamental"),
+  makeClassifTask(data = dsfisiologico, target = "fisiologico"),
+  makeClassifTask(data = dsPsiquico, target = "psiquico")
+)
 
 # Criar uma lista de algoritmos (learners)
 lrns = list(                   # LDA - algoritmo linear
-  makeLearner("classif.svm", id = "svm")# RF  - random Forest 
+  makeLearner("classif.svm", id = "svm"),  
+  makeLearner("classif.naiveBayes", id = "nbayes")                # DT  - arvore de decisao
 )
 
-# Definir o processo de validacao cruzada (10 particoes)
 #rdesc = makeResampleDesc("CV", iters = 10, stratify = TRUE)
 rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 10, folds = 10)
 
 # Definir medidas de avaliacao
 me = list(acc, bac)
 
+
 # Rodar os algoritmos na tarefa definida
-bmr = benchmark(learners = lrns, tasks = task, resamplings = rdesc, 
+bmr = benchmark(learners = lrns, tasks = tasks, resamplings = rdesc, 
                 measures = me, show.info = TRUE)
 print(bmr)
 
 # Plotar os resultados (boxplots)
-plotBMRBoxplots(bmr, measure = bac, style = "violin",
+plotBMRBoxplots(bmr, measure = acc, style = "violin",
                 order.lrn = getBMRLearnerIds(bmr)) + aes(color = learner.id)
 
-plotBMRBoxplots(bmr, measure = bac, style = "box",
+plotBMRBoxplots(bmr, measure = acc, style = "box",
                 order.lrn = getBMRLearnerIds(bmr)) +
   aes(color = learner.id) 
-
+getBMRMeasures(bmr)
 # demais plots?
