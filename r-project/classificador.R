@@ -11,6 +11,8 @@ source("pre-processing.R")
 #busca dados no servidor
 dados = getDataset()
 
+write.csv(dados, "~/Projects/personal/tcc/TCC/r-project/dataset.csv", row.names = FALSE)
+
 datateste = read.csv("dataset.csv")
 
 View(datateste)
@@ -38,13 +40,15 @@ vetores = vetorizar(sentencas)
 dsComportamental = data.frame(comportamental, vetores)
 
 #cria um dataset referente ao fisiologico e os vetores
-dsfisiologico = data.frame(fisiologico, vetores)
+dsfisiologico = data.frame(fisiologico, sentencas)
 
 #cria um dataset referente ao psiquico e os vetores
-dsPsiquico = data.frame(psiquico, vetores)
+dsPsiquico = data.frame(psiquico, sentencas)
+
+ggplot(data = dsfisiologico) + geom_bar(mapping = aes(x = fisiologico, fill = fisiologico))
 
 tasks = list(
-  makeClassifTask(data = dsComportamental, target = "comportamental"),
+  #makeClassifTask(data = dsComportamental, target = "comportamental"),
   makeClassifTask(data = dsfisiologico, target = "fisiologico"),
   makeClassifTask(data = dsPsiquico, target = "psiquico")
 )
@@ -56,7 +60,7 @@ lrns = list(                   # LDA - algoritmo linear
 )
 
 #rdesc = makeResampleDesc("CV", iters = 10, stratify = TRUE)
-rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 10, folds = 10)
+rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 3, folds = 10)
 
 # Definir medidas de avaliacao
 me = list(acc, bac)
@@ -76,3 +80,20 @@ plotBMRBoxplots(bmr, measure = acc, style = "box",
   aes(color = learner.id) 
 getBMRMeasures(bmr)
 # demais plots?
+
+# Plotando os resultados
+plotBMRSummary(bmr = bmr)
+
+plotBMRRanksAsBarChart(bmr = bmr)
+
+plotBMRBoxplots(bmr, measure = bac, style = "box", pretty.names = FALSE, 
+                order.lrn = getBMRLearnerIds(bmr)) + aes(color = learner.id) +
+  theme(strip.text.x = element_text(size = 8))
+
+plotBMRBoxplots(bmr, measure = bac, style = "violin", pretty.names = FALSE, 
+                order.lrn = getBMRLearnerIds(bmr)) + aes(color = learner.id) +
+  theme(strip.text.x = element_text(size = 8))
+
+# Calcular teste estatistico e verificar a significancia dos resultados
+g = generateCritDifferencesData(bmr, p.value = 0.05, test = "nemenyi")
+plotCritDifferences(g) + coord_cartesian(xlim = c(-1,5), ylim = c(0,2))
