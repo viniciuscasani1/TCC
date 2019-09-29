@@ -16,3 +16,5 @@ install.packages("qdapRegex", dependencies = TRUE)
 #pré processamento
 install.packages("Stem", dependencies = TRUE)
 install.packages("wordcloud", dependencies = TRUE)
+
+install.packages("Rtools", dependencies = TRUE)

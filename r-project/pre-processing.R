@@ -3,7 +3,7 @@ library(ggplot2)
 library(tm)
 library(wordcloud)
 library (devtools)
-install_github("trinker/qdapRegex")
+install_github("trinker/qdapRegex", force = TRUE )
 library(qdapRegex)
 
 preProcess <- function(stringList, rmNum = FALSE, rmPont = FALSE, rmSpace = FALSE,

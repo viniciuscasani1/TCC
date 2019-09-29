@@ -10,13 +10,14 @@ server <- function(url) {
 
 #converte dados para JSON
 convertToJson <- function(dados){
+  print(dados)
   text<-content(dados,as="text")
   return( fromJSON(text))
 }
 
 #consulta todos os dados do dataset 
 getDados <- function(){
-  dados <- GET(handle = server(), path = "api/data/validados")
+  dados <- GET(handle = server(), path = "/api/data/validados", timeout= 4000000)
  return(convertToJson(dados))
 }
 
@@ -33,3 +34,4 @@ getDataset <- function(){
   dt<-as.data.frame(do.call("cbind", json))
   return(dt)
 }
+

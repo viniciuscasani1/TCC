@@ -9,9 +9,9 @@ source("request_server.R")
 source("pre-processing.R")
 
 #busca dados no servidor
-dados = getDataset()
+#dados = getDataset()
 
-write.csv(dados, "~/Projects/personal/tcc/TCC/r-project/dataset.csv", row.names = FALSE)
+#write.csv(dados, "C://dev/tcc/TCC/r-project/dataset.csv", row.names = FALSE)
 
 datateste = read.csv("dataset.csv")
 
@@ -22,7 +22,7 @@ dados = datateste
 #extrai apenas as sentenças para vetorizar
 sentencas = dados[,1]
 
-sentencas = preProcess(sentencas, stemDoc = TRUE)
+sentencas = preProcess(sentencas, stemDoc = TRUE, rmNum = TRUE, rmPont = TRUE, rmSpace = TRUE)
 
 #extrai coluna comportamental
 comportamental = dados[,2]
@@ -36,40 +36,52 @@ psiquico = dados[,4]
 #vetoriza as sentenças retornando uma matriz
 vetores = vetorizar(sentencas)
 
+View(vetores)
+
 #cria um dataset referente ao comportamental e os vetores
-dsComportamental = data.frame(comportamental, vetores)
+dsComportamental = data.frame(comportamental, sentencas)
 
 #cria um dataset referente ao fisiologico e os vetores
 dsfisiologico = data.frame(fisiologico, sentencas)
 
 #cria um dataset referente ao psiquico e os vetores
-dsPsiquico = data.frame(psiquico, sentencas)
+dsPsiquico = data.frame(psiquico, vetores)
 
 ggplot(data = dsfisiologico) + geom_bar(mapping = aes(x = fisiologico, fill = fisiologico))
 
 tasks = list(
-  #makeClassifTask(data = dsComportamental, target = "comportamental"),
+
   makeClassifTask(data = dsfisiologico, target = "fisiologico"),
   makeClassifTask(data = dsPsiquico, target = "psiquico")
 )
 
-# Criar uma lista de algoritmos (learners)
-lrns = list(                   # LDA - algoritmo linear
-  makeLearner("classif.svm", id = "svm"),  
-  makeLearner("classif.naiveBayes", id = "nbayes")                # DT  - arvore de decisao
-)
+tk=  makeClassifTask(data = dsfisiologico, target = "fisiologico")
 
-#rdesc = makeResampleDesc("CV", iters = 10, stratify = TRUE)
-rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 3, folds = 10)
+# Criar uma lista de algoritmos (learners)
+lrns = makeLearner("classif.naiveBayes", id = "nbayes")
+
+rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 10, folds = 10)
 
 # Definir medidas de avaliacao
 me = list(acc, bac)
 
-
 # Rodar os algoritmos na tarefa definida
-bmr = benchmark(learners = lrns, tasks = tasks, resamplings = rdesc, 
-                measures = me, show.info = TRUE)
-print(bmr)
+#bmr = resample(learner = lrns, tasks = tk, resamplings = rdesc, 
+ #               measures = me, show.info = TRUE, keep.pred = TRUE)
+
+result = resample(learner = lrns, task = tk, resampling = rdesc,
+                  measures = me, show.info = TRUE)
+print(result)
+
+# mostrando o resultado
+print(result$aggr)
+
+# Checar as predicoes obtidas pelo algoritmo
+result$pred
+pred = getRRPredictions(res = result)
+print(pred)
+
+calculateConfusionMatrix(pred)
 
 # Plotar os resultados (boxplots)
 plotBMRBoxplots(bmr, measure = acc, style = "violin",
@@ -78,22 +90,5 @@ plotBMRBoxplots(bmr, measure = acc, style = "violin",
 plotBMRBoxplots(bmr, measure = acc, style = "box",
                 order.lrn = getBMRLearnerIds(bmr)) +
   aes(color = learner.id) 
-getBMRMeasures(bmr)
 # demais plots?
 
-# Plotando os resultados
-plotBMRSummary(bmr = bmr)
-
-plotBMRRanksAsBarChart(bmr = bmr)
-
-plotBMRBoxplots(bmr, measure = bac, style = "box", pretty.names = FALSE, 
-                order.lrn = getBMRLearnerIds(bmr)) + aes(color = learner.id) +
-  theme(strip.text.x = element_text(size = 8))
-
-plotBMRBoxplots(bmr, measure = bac, style = "violin", pretty.names = FALSE, 
-                order.lrn = getBMRLearnerIds(bmr)) + aes(color = learner.id) +
-  theme(strip.text.x = element_text(size = 8))
-
-# Calcular teste estatistico e verificar a significancia dos resultados
-g = generateCritDifferencesData(bmr, p.value = 0.05, test = "nemenyi")
-plotCritDifferences(g) + coord_cartesian(xlim = c(-1,5), ylim = c(0,2))
