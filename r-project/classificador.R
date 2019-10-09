@@ -9,9 +9,10 @@ source("request_server.R")
 source("pre-processing.R")
 
 #busca dados no servidor
-#dados = getDataset()
+dados = getDataset()
 
 #write.csv(dados, "C://dev/tcc/TCC/r-project/dataset.csv", row.names = FALSE)
+#write.csv(dados, "~/Projects/personal/tcc/TCC/r-project/dataset.csv", row.names = FALSE)
 
 datateste = read.csv("dataset.csv")
 

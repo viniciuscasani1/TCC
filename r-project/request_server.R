@@ -10,8 +10,7 @@ server <- function(url) {
 
 #converte dados para JSON
 convertToJson <- function(dados){
-  print(dados)
-  text<-content(dados,as="text")
+  text<-httr::content(dados,as="text")
   return( fromJSON(text))
 }
 
