@@ -16,14 +16,16 @@ dados = getDataset()
 
 datateste = read.csv("dataset.csv")
 
-View(datateste)
+dataset = dados
+
+View(sentencas)
 
 dados = datateste
 
 #extrai apenas as sentenças para vetorizar
 sentencas = dados[,1]
 
-sentencas = preProcess(sentencas, stemDoc = TRUE, rmNum = TRUE, rmPont = TRUE, rmSpace = TRUE)
+sentencas = preProcess(sentencas, stemDoc = TRUE, rmNum = TRUE, rmPont = TRUE, rmSpace = TRUE, rmStopWords = TRUE)
 
 #extrai coluna comportamental
 comportamental = dados[,2]
@@ -46,7 +48,7 @@ dsComportamental = data.frame(comportamental, sentencas)
 dsfisiologico = data.frame(fisiologico, sentencas)
 
 #cria um dataset referente ao psiquico e os vetores
-dsPsiquico = data.frame(psiquico, vetores)
+dsPsiquico = data.frame(psiquico, aux)
 
 ggplot(data = dsfisiologico) + geom_bar(mapping = aes(x = fisiologico, fill = fisiologico))
 
@@ -56,10 +58,11 @@ tasks = list(
   makeClassifTask(data = dsPsiquico, target = "psiquico")
 )
 
-tk=  makeClassifTask(data = dsfisiologico, target = "fisiologico")
+tk=  makeClassifTask(data = dsPsiquico, target = "psiquico")
 
 # Criar uma lista de algoritmos (learners)
 lrns = makeLearner("classif.naiveBayes", id = "nbayes")
+sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
 
 rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 10, folds = 10)
 
@@ -70,7 +73,7 @@ me = list(acc, bac)
 #bmr = resample(learner = lrns, tasks = tk, resamplings = rdesc, 
  #               measures = me, show.info = TRUE, keep.pred = TRUE)
 
-result = resample(learner = lrns, task = tk, resampling = rdesc,
+result = resample(learner = sv.lrn, task = tk, resampling = rdesc,
                   measures = me, show.info = TRUE)
 print(result)
 

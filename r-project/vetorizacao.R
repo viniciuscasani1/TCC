@@ -2,8 +2,9 @@ library(text2vec)
 library(superml)
 
 vetorizar <- function(sentencas){
+  print(23)
   #cria vetorização
-  tf_object = TfIdfVectorizer$new(max_df=1, min_df=1, max_features=1, smooth_idf=TRUE)
+  tf_object = TfIdfVectorizer$new(max_df=1, min_df=0.5, max_features=1, smooth_idf=TRUE)
   #realiza a vetorização das sentenças
   tf_object$fit(sentencas)
   #tf_matrix = tf_object$transform(sentencas)

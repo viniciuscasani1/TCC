@@ -6,6 +6,8 @@ library(ggplot2)
 dataset = read.csv("dataset.csv")
 dataset$tweet = as.character(dataset$tweet)
 
+View(dataset)
+
 dim(dataset) # 1093 linhas, 9 colunas
 
 # renaming labels
@@ -13,7 +15,8 @@ dataset$label = factor(dataset$label)
 dataset$label = plyr::mapvalues(dataset$label, from = levels(dataset$label),
   to = c("nenhum", "fisio", "comport", "psiq", "fisio_psiq", "fisio_comport", "psiq_comport"))
 
-ggplot(dataset, aes(x = label, colour = label, fill = label)) + geom_bar() + theme_bw()
+#ggplot(dataset, aes(x = label, colour = label, fill = label)) + geom_bar() + theme_bw()
+g = ggplot(dataset, aes(x = label, colour = label, fill = label)) + geom_bar() + theme_bw()
 g = g + theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1, size = 9))
 
 ggplot(data = dsfisiologico) + geom_bar(mapping = aes(x = fisiologico, fill = fisiologico))
@@ -44,10 +47,26 @@ library(qdapRegex)
 source("vetorizacao.R")
 source("pre-processing.R")
 
+sentencas = dataset[,1]
+
 sentencas = preProcess(dataset[,1], stemDoc = TRUE, rmNum = TRUE, rmPont = TRUE, rmSpace = TRUE, rmStopWords = TRUE)
 aux = vetorizar(sentencas)
 
+aux = doc_term_train
+
+vectorizer = vocab_vectorizer(sentencas)
+ 
+ View(sentencas)
+
 df = cor(data.matrix(aux))
+hc = caret::findCorrelation(df, cutoff = 0.80, verbose = FALSE)
+
+if(length(hc) > 0) {
+  cat(" - removing correlated features\n")
+  aux = cbind(aux[,-c(hc)])
+}
+
+df2 = cor(data.matrix(aux))
 hc = caret::findCorrelation(df, cutoff = 0.95, verbose = FALSE)
 
 if(length(hc) > 0) {
@@ -56,11 +75,10 @@ if(length(hc) > 0) {
 }
 
 after = aux
-dim(after)
+dim(aux)
+dim(dataset)
 # 660 1476
-#1093 2123
-#1093 4028
-#1093 2123
+#1093 3910
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
@@ -88,7 +106,7 @@ library(mlr)
 colnames(df1) = make.names(colnames(df1), unique = TRUE)
 df1$psiquico = as.factor(df1$psiquico)
 tk    = makeClassifTask(data = df1, target = "psiquico")
-me    = list(acc, bac, auc)
+me    = list(acc, bac)
 
 nb.lrn = makeLearner("classif.naiveBayes", id = "nbayes", predict.type = "prob")
 nn.lrn = makeLearner("classif.kknn", id = "knn", predict.type = "prob")
@@ -111,7 +129,7 @@ learners = list(sv.lrn, sv2)
 
 learners = sv.lrn
 
-rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 10, folds = 10)
+rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 2, folds = 10)
 result = benchmark(learner = learners, tasks = tk, resamplings = rdesc,
                   measures = me, show.info = TRUE)
 print(result)
