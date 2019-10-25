@@ -18,3 +18,6 @@ install.packages("Stem", dependencies = TRUE)
 install.packages("wordcloud", dependencies = TRUE)
 
 install.packages("Rtools", dependencies = TRUE)
+
+install_version("tm", version = "0.6-2", repos = "http://cran.r-project.org")
+

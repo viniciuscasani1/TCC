@@ -5,7 +5,7 @@ library(ggplot2)
 
 dataset = read.csv("dataset.csv")
 dataset$tweet = as.character(dataset$tweet)
-
+dataset = dados
 View(dataset)
 
 dim(dataset) # 1093 linhas, 9 colunas
@@ -13,13 +13,17 @@ dim(dataset) # 1093 linhas, 9 colunas
 # renaming labels
 dataset$label = factor(dataset$label)
 dataset$label = plyr::mapvalues(dataset$label, from = levels(dataset$label),
-  to = c("nenhum", "fisio", "comport", "psiq", "fisio_psiq", "fisio_comport", "psiq_comport"))
+  to = c("nenhum", "fisio", "comport", "psiq", "fisio_psiq", "fisio_comport", "psiq_comport", "todos"))
 
+dataset$label = plyr::mapvalues(dataset$label, from = levels(dataset$label),
+      to = c("nenhum", "fisio", "comport", "psiq"))
 #ggplot(dataset, aes(x = label, colour = label, fill = label)) + geom_bar() + theme_bw()
-g = ggplot(dataset, aes(x = label, colour = label, fill = label)) + geom_bar() + theme_bw()
+ ggplot(dataset, aes(x = label, colour = label, fill = label)) + geom_bar() + theme_bw()
 g = g + theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1, size = 9))
 
-ggplot(data = dsfisiologico) + geom_bar(mapping = aes(x = fisiologico, fill = fisiologico))
+View(dataset)
+
+ggplot(data = dsPsiquico) + geom_bar(mapping = aes(x = psiquico, fill = psiquico))
 # gsave(g, file = "classDistribution.png")
 # Saving 6.44 x 3.37 in image
 
@@ -52,14 +56,8 @@ sentencas = dataset[,1]
 sentencas = preProcess(dataset[,1], stemDoc = TRUE, rmNum = TRUE, rmPont = TRUE, rmSpace = TRUE, rmStopWords = TRUE)
 aux = vetorizar(sentencas)
 
-aux = doc_term_train
-
-vectorizer = vocab_vectorizer(sentencas)
- 
- View(sentencas)
-
 df = cor(data.matrix(aux))
-hc = caret::findCorrelation(df, cutoff = 0.80, verbose = FALSE)
+hc = caret::findCorrelation(df, cutoff = 0.95, verbose = FALSE)
 
 if(length(hc) > 0) {
   cat(" - removing correlated features\n")
@@ -78,58 +76,68 @@ after = aux
 dim(aux)
 dim(dataset)
 # 660 1476
+#
 #1093 3910
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
-
-df1 = cbind(aux, dataset$psiquico)
-colnames(df1)[ncol(df1)] = "psiquico"
-
+dataset = datateste
+df1 = cbind(vet, dataset$label)
+colnames(df1)[ncol(df1)] = "label"
+df1
 #removendo duplicated examples
 remv = which(duplicated(df1))
 if(length(remv) != 0) {
   cat(" - removing duplicated examples\n")
   df1 = df1[-remv,]
 }
+View(df1)
 
 dim(df1)
 # 633 1477
 df1 = as.data.frame(df1)
-ggplot(data = df1) + geom_bar(mapping = aes(x = psiquico, fill = psiquico))
+ggplot(data = dsPsiquico) + geom_bar(mapping = aes(x = psiquico, fill = psiquico))
 
 # table(df1$fisiologico)
 #   0   1
 # 557  76
 
+lbl = dataset$label
+df = data.frame(lbl, vet)
+
+
 library(mlr)
 colnames(df1) = make.names(colnames(df1), unique = TRUE)
-df1$psiquico = as.factor(df1$psiquico)
-tk    = makeClassifTask(data = df1, target = "psiquico")
-me    = list(acc, bac)
+dsPsiquico$psiquico = as.factor(dsPsiquico$psiquico)
+tk    = list(makeClassifTask(data = df, target = "lbl"),
+             makeClassifTask(data = dsComportamental, target = "comportamental"))
+me    = list(acc, bac, auc)
 
 nb.lrn = makeLearner("classif.naiveBayes", id = "nbayes", predict.type = "prob")
 nn.lrn = makeLearner("classif.kknn", id = "knn", predict.type = "prob")
 dt.lrn = makeLearner("classif.rpart", id = "dt", predict.type = "prob")
 gl.lrn = makeLearner("classif.glmnet", id = "glm", predict.type = "prob")
 sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
-#rf.lrn = makeLearner("classif.randomForest", id = "rf", predict.type = "prob")
+lg.lrn = makeLearner("classif.logreg", id = "logreg", predict.type = "prob")
+rf.lrn = makeLearner("classif.randomForest", id="rf", predict.type = "prob")
 
 nb2 = mlr::makeSMOTEWrapper(learner = nb.lrn, sw.rate = 2)
 nn2 = mlr::makeSMOTEWrapper(learner = nn.lrn, sw.rate = 2)
 dt2 = mlr::makeSMOTEWrapper(learner = dt.lrn, sw.rate = 2)
 gl2 = mlr::makeSMOTEWrapper(learner = gl.lrn, sw.rate = 2)
 sv2 = mlr::makeSMOTEWrapper(learner = sv.lrn, sw.rate = 2)
-#rf2 = mlr::makeSMOTEWrapper(learner = rf.lrn, sw.rate = 2)
+rf2 = mlr::makeSMOTEWrapper(learner = rf.lrn, sw.rate = 2)
 
 learners = list(nb.lrn, nn.lrn, dt.lrn, gl.lrn, sv.lrn,
   nb2, nn2, dt2, gl2, sv2)
+
+learners = list(nb.lrn, nn.lrn, sv.lrn)
 
 learners = list(sv.lrn, sv2)
 
 learners = sv.lrn
 
-rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 2, folds = 10)
+rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 10, folds = 10)
 result = benchmark(learner = learners, tasks = tk, resamplings = rdesc,
                   measures = me, show.info = TRUE)
 print(result)
@@ -138,6 +146,8 @@ print(result)
 result = resample(learner = learners, task = tk, resampling = rdesc,
                   measures = me, show.info = TRUE)
 
+
+g = generateCritDifferencesData(result, test = "bd",   baseline = "svm")
 
 # Checar as predicoes obtidas pelo algoritmo
 result$pred

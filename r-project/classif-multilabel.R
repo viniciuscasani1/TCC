@@ -34,7 +34,6 @@ vet = t(tdm)
 # -----------------------------------------
 cat(" - Psiquico task\n")
 psiquico = as.logical(dataset$psiquico)
-dsPsiquico = data.frame(psiquico, vet)
 
 cat(" - Comportamental task\n")
 comportamental = as.logical(dataset$comportamental)
@@ -45,43 +44,43 @@ fisiologico = as.logical(dataset$fisiologico)
 dsMultiLabel = data.frame(psiquico, comportamental, fisiologico, vet)
 
 task =  makeMultilabelTask(id = "multi", data = dsMultiLabel, target = c("psiquico", "comportamental", "fisiologico"))
+
 # -----------------------------------------
 # -----------------------------------------
-mlp.lrn = makeLearner("classif.mlp", id= "mlp", predict.type = "prob")
 sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
-rdesc = makeResampleDesc(method = "RepCV", stratify = FALSE, rep = 10, folds = 10)
+nb.lrn = makeLearner("classif.naiveBayes", id = "nbayes", predict.type = "prob")
+mlp.lrn = makeLearner("classif.mlp", id= "mlp", predict.type = "prob")
 
 mlp.lrn = makeMultilabelBinaryRelevanceWrapper(mlp.lrn)
 sv.lrn = makeMultilabelBinaryRelevanceWrapper(sv.lrn)
-sv.lrn = makeMultilabelBinaryRelevanceWrapper(sv.lrn)
+nb.lrn = makeMultilabelBinaryRelevanceWrapper(nb.lrn)
+
+rdesc = makeResampleDesc(method = "RepCV", stratify = FALSE, rep = 10, folds = 10)
 
 # Definir medidas de avaliacao
-me = list(acc, bac, auc, f1)
+me = list(multilabel.acc, multilabel.f1)
 
-lrns = list(mlp.lrn, sv.lrn)
+lrns = list(mlp.lrn, sv.lrn, nb.lrn)
+
 
 result = mlr::benchmark(learners = lrns, tasks = task, resamplings = rdesc,
                         measures = me, show.info = TRUE)
 print(result)
 
-###
+pred = getBMRPredictions(result)
 
-psi.train = dsPsiquico[1:1500,]
-psi.test = dsPsiquico[1501:2028,]
-tk1 =  makeClassifTask(data = psi.train, target = "psiquico")
+pred
 
-sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
-mod = train(sv.lrn, task = tk1)
 
-psi.t
+ds.train = dsMultiLabel[1:1500,]
+ds.test = dsMultiLabel[1501:2028,]
+task =  makeMultilabelTask(id = "multi", data = ds.train, target = c("psiquico", "comportamental", "fisiologico"))
+mod = train(mlp.lrn, task = task)
 
-pred = predict(mod, newdata = psi.test)
+pred = predict(mod, newdata = ds.test)
 
 View(dataset)
 performance(pred, measures = me )
 
-View(data.frame(pred))
 
-calculateConfusionMatrix(pred)
-
-View(dataset)
+getMultilabelBinaryPerformances(pred, measures = list(auc, acc, f1))

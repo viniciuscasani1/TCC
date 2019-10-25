@@ -3,6 +3,7 @@ library(mlr)
 library(ggplot2)
 library(reshape2)
 library(stringr)
+library(tm)
 
 #carrega arquivos
 source("request_server.R")
@@ -29,59 +30,42 @@ tdm = as.matrix(twogramRowSum)
 
 vet = t(tdm)
 
+View(twogramMatrix)
 # -----------------------------------------
 #######psiquico
 # -----------------------------------------
 cat(" - Psiquico task\n")
-psiquico = as.logical(dataset$psiquico)
+psiquico = dataset$psiquico
 dsPsiquico = data.frame(psiquico, vet)
+tk1 =  makeClassifTask(data = dsPsiquico, target = "psiquico")
 
 cat(" - Comportamental task\n")
-comportamental = as.logical(dataset$comportamental)
+comportamental = dataset$comportamental
+dsComportamental = data.frame(comportamental, vet)
+tk2 =  makeClassifTask(data = dsComportamental, target = "comportamental")
 
 cat(" - Fisiologico task\n")
-fisiologico = as.logical(dataset$fisiologico)
+fisiologico = dataset$fisiologico
+dsFisiologico = data.frame(fisiologico, vet)
+tk3 =  makeClassifTask(data = dsFisiologico, target = "fisiologico")
 
-dsMultiLabel = data.frame(psiquico, comportamental, fisiologico, vet)
+tasks = list(tk1, tk2, tk3)
 
-task =  makeMultilabelTask(id = "multi", data = dsMultiLabel, target = c("psiquico", "comportamental", "fisiologico"))
 # -----------------------------------------
 # -----------------------------------------
-mlp.lrn = makeLearner("classif.mlp", id= "mlp", predict.type = "prob")
 sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
-rdesc = makeResampleDesc(method = "RepCV", stratify = FALSE, rep = 10, folds = 10)
+nb.lrn = makeLearner("classif.naiveBayes", id = "nbayes", predict.type = "prob")
+mlp.lrn = makeLearner("classif.mlp", id= "mlp", predict.type = "prob")
 
-mlp.lrn = makeMultilabelBinaryRelevanceWrapper(mlp.lrn)
-sv.lrn = makeMultilabelBinaryRelevanceWrapper(sv.lrn)
-sv.lrn = makeMultilabelBinaryRelevanceWrapper(sv.lrn)
+rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 10, folds = 10)
 
 # Definir medidas de avaliacao
 me = list(acc, bac, auc, f1)
 
-lrns = list(mlp.lrn, sv.lrn)
+lrns = list(mlp.lrn, sv.lrn, nb.lrn)
 
-result = mlr::benchmark(learners = lrns, tasks = task, resamplings = rdesc,
+result = mlr::benchmark(learners = lrns, tasks = tasks, resamplings = rdesc,
                         measures = me, show.info = TRUE)
 print(result)
 
-###
-
-psi.train = dsPsiquico[1:1500,]
-psi.test = dsPsiquico[1501:2028,]
-tk1 =  makeClassifTask(data = psi.train, target = "psiquico")
-
-sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
-mod = train(sv.lrn, task = tk1)
-
-psi.t
-
-pred = predict(mod, newdata = psi.test)
-
-View(dataset)
-performance(pred, measures = me )
-
-View(data.frame(pred))
-
-calculateConfusionMatrix(pred)
-
-View(dataset)
+##
