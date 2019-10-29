@@ -46,7 +46,7 @@ sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
 nb.lrn = makeLearner("classif.naiveBayes", id = "nbayes", predict.type = "prob")
 mlp.lrn = makeLearner("classif.mlp", id= "mlp", predict.type = "prob")
 
-rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 10, folds = 10)
+rdesc = makeResampleDesc(method = "RepCV", stratify = TRUE, rep = 10, folds = 8)
 
 # Definir medidas de avaliacao
 me = list(acc, bac, multiclass.au1u, timepredict, timetrain )

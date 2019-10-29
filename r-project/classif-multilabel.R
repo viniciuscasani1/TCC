@@ -11,7 +11,6 @@ source("pre-processing.R")
 #busca dados no servidor
 cat(" - Downloading dataset\n")
 dados = getDataset()
-
 dataset = dados
 
 #pre-processamento
@@ -47,6 +46,7 @@ task =  makeMultilabelTask(id = "multi", data = dsMultiLabel, target = c("psiqui
 
 # -----------------------------------------
 # -----------------------------------------
+sv.lrn  = makeLearner("classif.svm", kernel = "radial")
 sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
 nb.lrn = makeLearner("classif.naiveBayes", id = "nbayes", predict.type = "prob")
 mlp.lrn = makeLearner("classif.mlp", id= "mlp", predict.type = "prob")
@@ -63,7 +63,7 @@ me = list(multilabel.acc, multilabel.f1)
 lrns = list(mlp.lrn, sv.lrn, nb.lrn)
 
 
-result = mlr::benchmark(learners = lrns, tasks = task, resamplings = rdesc,
+result = mlr::benchmark(learners = sv.lrn, tasks = task, resamplings = rdesc,
                         measures = me, show.info = TRUE)
 print(result)
 

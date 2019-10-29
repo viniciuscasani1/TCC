@@ -66,8 +66,8 @@ print(result)
 
 ###
 
-psi.train = dsPsiquico[1:1500,]
-psi.test = dsPsiquico[1501:2028,]
+psi.train = dsPsiquico[1:2008,]
+psi.test = dsPsiquico[2009:2142,]
 tk1 =  makeClassifTask(data = psi.train, target = "psiquico")
 
 sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
