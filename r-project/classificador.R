@@ -3,6 +3,7 @@ library(mlr)
 library(ggplot2)
 library(reshape2)
 library(stringr)
+library(iterators)
 
 #carrega arquivos
 source("request_server.R")
@@ -14,74 +15,59 @@ dados = getDataset()
 
 dataset = dados
 
+d1 =  dataset[1:2008,]
+d2 = dataset[3122:3273,]
+
+new = rbind(d1, d2)
+
 #pre-processamento
 cat(" - Preprocessing\n")
-aux <- preProcess(dataset$tweet, stemDoc = TRUE, rmNum = TRUE, rmPont = TRUE, rmSpace = TRUE, rmStopWords = TRUE)
+aux <- preProcess(new$tweet, stemDoc = TRUE, rmNum = TRUE, rmPont = TRUE, rmSpace = TRUE, rmStopWords = TRUE)
 
 cat(" - Tokenizer\n")
 TwogramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 2, max = 2))
-teste = Corpus(VectorSource(aux))
+teste = as.VCorpus(aux)
 twogramMatrix<-TermDocumentMatrix(teste)
 
-twoFreq<-findFreqTerms(twogramMatrix,lowfreq=10)
+twoFreq<-findFreqTerms(twogramMatrix,lowfreq=20)
 twogramRowSum<-as.matrix(twogramMatrix[twoFreq,])
 tdm = as.matrix(twogramRowSum)
 
 vet = t(tdm)
-
 # -----------------------------------------
-#######psiquico
+#######Multiclasse
 # -----------------------------------------
-cat(" - Psiquico task\n")
-psiquico = as.logical(dataset$psiquico)
-dsPsiquico = data.frame(psiquico, vet)
+cat(" - Multiclasse task\n")
+label = new$label
+dsLabel = data.frame(label, vet)
 
-cat(" - Comportamental task\n")
-comportamental = as.logical(dataset$comportamental)
-
-cat(" - Fisiologico task\n")
-fisiologico = as.logical(dataset$fisiologico)
-
-dsMultiLabel = data.frame(psiquico, comportamental, fisiologico, vet)
-
-task =  makeMultilabelTask(id = "multi", data = dsMultiLabel, target = c("psiquico", "comportamental", "fisiologico"))
-# -----------------------------------------
-# -----------------------------------------
-mlp.lrn = makeLearner("classif.mlp", id= "mlp", predict.type = "prob")
-sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
-rdesc = makeResampleDesc(method = "RepCV", stratify = FALSE, rep = 10, folds = 10)
-
-mlp.lrn = makeMultilabelBinaryRelevanceWrapper(mlp.lrn)
-sv.lrn = makeMultilabelBinaryRelevanceWrapper(sv.lrn)
-sv.lrn = makeMultilabelBinaryRelevanceWrapper(sv.lrn)
 
 # Definir medidas de avaliacao
-me = list(acc, bac, auc, f1)
-
-lrns = list(mlp.lrn, sv.lrn)
-
-result = mlr::benchmark(learners = lrns, tasks = task, resamplings = rdesc,
-                        measures = me, show.info = TRUE)
-print(result)
-
+me = list(acc, bac, multiclass.au1u)
 ###
-
-psi.train = dsPsiquico[1:2008,]
-psi.test = dsPsiquico[2009:2142,]
-tk1 =  makeClassifTask(data = psi.train, target = "psiquico")
+psi.train = dsLabel[1:2008,]
+psi.test = dsLabel[2009:2160,]
+tk1 =  makeClassifTask(data = psi.train, target = "label")
 
 sv.lrn = makeLearner("classif.svm", id = "svm", predict.type = "prob")
 mod = train(sv.lrn, task = tk1)
 
-psi.t
-
 pred = predict(mod, newdata = psi.test)
 
-View(dataset)
 performance(pred, measures = me )
-
-View(data.frame(pred))
 
 calculateConfusionMatrix(pred)
 
-View(dataset)
+resp = (getPredictionResponse(pred))
+
+View(resp)
+
+id = new$idTweet
+user = dataset$idUsuario
+ids = data.frame(id)
+ids = ids[2009:2160,]
+
+fim = data.frame(resp, ids)
+
+write.csv(fim, "~/Projects/personal/tcc/TCC/r-project/result.csv", row.names = FALSE)
+

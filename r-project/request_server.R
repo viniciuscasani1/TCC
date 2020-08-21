@@ -16,7 +16,7 @@ convertToJson <- function(dados){
 
 #consulta todos os dados do dataset 
 getDados <- function(){
-  dados <- GET(handle = server(), path = "/api/data/validados", timeout= 4000000)
+  dados <- GET(handle = server(), path = "/api/data", timeout= 4000000)
  return(convertToJson(dados))
 }
 

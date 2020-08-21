@@ -1,0 +1,9 @@
+Classificador,Tempo Geral de Processamento,Abordagem
+SVM,13.21,Multi-Classe
+NB,1.06,Multi-Classe
+MLP,2.21,Multi-Classe
+RF,34.74,Multi-Classe
+SVM,24.84,Múltiplos Modelos Binários
+NB,3.09,Múltiplos Modelos Binários
+MLP,6.21,Múltiplos Modelos Binários
+RF,115.61,Múltiplos Modelos Binários

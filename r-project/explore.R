@@ -16,11 +16,12 @@ dataset$label = plyr::mapvalues(dataset$label, from = levels(dataset$label),
   to = c("nenhum", "fisio", "comport", "psiq", "fisio_psiq", "fisio_comport", "psiq_comport", "todos"))
 
 dataset$label = plyr::mapvalues(dataset$label, from = levels(dataset$label),
-      to = c("nenhum", "fisio", "comport", "psiq"))
+      to = c("Nenhum", "Fisiológico", "Comportamental", "Psíquico"))
 #ggplot(dataset, aes(x = label, colour = label, fill = label)) + geom_bar() + theme_bw()
- ggplot(dataset, aes(x = label, colour = label, fill = label)) + geom_bar() + theme_bw()
-g = g + theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1, size = 9))
-
+ g = ggplot(dataset, aes(x = label,  fill = label)) + geom_bar(width = 0.5) + theme_bw()
+ g + theme(aspect.ratio = 0.7) + labs(y = "Quantidade", x = "Categoria Sintomática")  + scale_y_continuous(breaks = seq(0, 650, by = 100)) + scale_fill_grey(start = 0, end = .9)
+ 
+ggsave("sintomas.png")
 View(dataset)
 
 ggplot(data = dsPsiquico) + geom_bar(mapping = aes(x = psiquico, fill = psiquico))
@@ -175,3 +176,11 @@ calculateConfusionMatrix(pred)
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
+
+bin = read.csv("")
+
+
+
+
+
+

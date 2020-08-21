@@ -1,0 +1,9 @@
+Classificador,Média AUC,Abordagem
+MB-SVM,93.24,Múltiplos Modelos Binários
+MB-NB,79.52,Múltiplos Modelos Binários
+MB-MLP,91.87,Múltiplos Modelos Binários
+MB-RF,94.06,Múltiplos Modelos Binários
+SVM,92.60,Multi-Classe
+NB,72.51,Multi-Classe
+MLP,89.95,Multi-Classe
+RF,94.00,Multi-Classe
